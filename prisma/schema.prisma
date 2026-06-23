@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  fullName  String
+  email     String   @unique
+  password  String
+  creatorSlug String @unique
+  avatar    String?
+  bio       String?
+  twitter   String?
+  instagram String?
+  createdAt DateTime @default(now())
+  tips      Tip[]
+}
+
+model Tip {
+  id                     String   @id @default(cuid())
+  amount                 Int
+  currency               String   @default("NGN")
+  supporterName          String?
+  supporterEmail         String
+  message                String?
+  transactionReference   String   @unique
+  flutterwaveTransactionId String?
+  paymentStatus          String   @default("pending")
+  creatorId              String
+  creator                User     @relation(fields: [creatorId], references: [id])
+  createdAt              DateTime @default(now())
+}
