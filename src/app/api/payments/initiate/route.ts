@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { initiatePayment } from "@/lib/flutterwave"
-import { v4 as uuidv4 } from "uuid"
+import { generateTxRef } from "@/lib/slug"
+import { createCheckoutSession } from "@/lib/server/flutterwave"
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,24 +23,23 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "Creator not found" }, { status: 404 })
     }
 
-    const txRef = `HR-${uuidv4().slice(0, 8)}-${Date.now()}`
-    const redirectUrl = `${request.nextUrl.origin}/tip/${creatorSlug}/success`
+    const txRef = generateTxRef("TIP")
 
-    const payment = await initiatePayment({
+    const session = await createCheckoutSession({
       amount,
       currency: "NGN",
-      customerEmail: supporterEmail,
-      customerName: supporterName || undefined,
-      redirectUrl,
-      txRef,
+      reference: txRef,
+      customer: {
+        email: supporterEmail,
+        name: supporterName || "Supporter",
+      },
+      redirectUrl: `${request.nextUrl.origin}/tip/${creatorSlug}/success`,
+      meta: {
+        creatorSlug,
+        supporterName: supporterName || null,
+        message: message || null,
+      },
     })
-
-    if (payment.status !== "success") {
-      return Response.json(
-        { error: "Payment initiation failed" },
-        { status: 400 }
-      )
-    }
 
     await prisma.tip.create({
       data: {
@@ -56,11 +55,14 @@ export async function POST(request: NextRequest) {
     })
 
     return Response.json({
-      link: payment.data.link,
-      txRef,
+      chargeId: session.chargeId,
+      reference: session.reference,
+      checkoutUrl: session.checkoutUrl,
+      status: session.status,
     })
   } catch (error) {
-    console.error("Initiate payment error:", error)
-    return Response.json({ error: "Internal server error" }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    console.error("Initiate payment error:", message)
+    return Response.json({ error: "Internal server error", detail: message }, { status: 500 })
   }
 }

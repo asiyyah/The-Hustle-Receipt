@@ -1,76 +1,78 @@
-"use client"
+"use client";
 
-import { useState, FormEvent } from "react"
+import { useState, FormEvent } from "react";
 
 type Creator = {
-  id: string
-  fullName: string
-  avatar: string | null
-  bio: string | null
-  twitter: string | null
-  instagram: string | null
-  creatorSlug: string
-}
+  id: string;
+  fullName: string;
+  avatar: string | null;
+  bio: string | null;
+  twitter: string | null;
+  instagram: string | null;
+  creatorSlug: string;
+};
 
 type Tip = {
-  amount: number
-  supporterName: string | null
-  message: string | null
-  createdAt: Date
-}
+  amount: number;
+  supporterName: string | null;
+  message: string | null;
+  createdAt: Date;
+};
 
-const AMOUNTS = [500, 1000, 2000, 5000]
+const AMOUNTS = [500, 1000, 2000, 5000];
 
 export function TipPageClient({
   creator,
   tips,
 }: {
-  creator: Creator
-  tips: Tip[]
+  creator: Creator;
+  tips: Tip[];
 }) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
-  const [customAmount, setCustomAmount] = useState("")
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [customAmount, setCustomAmount] = useState("");
 
-  const amount = selectedAmount || (customAmount ? parseInt(customAmount) : 0)
+  const amount = selectedAmount || (customAmount ? parseInt(customAmount) : 0);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+    e.preventDefault();
     if (amount < 100) {
-      setError("Minimum tip is ₦100")
-      return
+      setError("Minimum tip is ₦100");
+      return;
     }
-    setError("")
-    setLoading(true)
+    setError("");
+    setLoading(true);
 
-    const form = new FormData(e.currentTarget)
+    const form = new FormData(e.currentTarget);
     const data = {
       creatorSlug: creator.creatorSlug,
       supporterName: form.get("supporterName") as string,
       supporterEmail: form.get("supporterEmail") as string,
       amount,
       message: form.get("message") as string,
-    }
+      lastName: creator.fullName,
+      email: form.get("supporterEmail") as string,
+    };
 
     try {
       const res = await fetch("/api/payments/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      })
+      });
 
-      const json = await res.json()
+      const json = await res.json();
 
-      if (res.ok && json.link) {
-        window.location.href = json.link
+      if (res.ok && json.checkoutUrl) {
+        window.location.href = json.checkoutUrl;
       } else {
-        setError(json.error || "Failed to initiate payment")
+        setError(json.error || "Failed to initiate payment");
       }
     } catch {
-      setError("Something went wrong")
+      setError("Something went wrong");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -87,9 +89,7 @@ export function TipPageClient({
           )}
           <div>
             <h1 className="text-2xl font-bold">{creator.fullName}</h1>
-            {creator.bio && (
-              <p className="text-gray-500 mt-1">{creator.bio}</p>
-            )}
+            {creator.bio && <p className="text-gray-500 mt-1">{creator.bio}</p>}
           </div>
           <p className="text-lg text-gray-600">Support my creative work ☕</p>
           {(creator.twitter || creator.instagram) && (
@@ -118,7 +118,10 @@ export function TipPageClient({
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white border rounded-2xl p-6 space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white border rounded-2xl p-6 space-y-5"
+        >
           <div>
             <label className="block text-sm font-medium mb-2">
               Your name <span className="text-gray-400">(optional)</span>
@@ -153,8 +156,8 @@ export function TipPageClient({
                   key={a}
                   type="button"
                   onClick={() => {
-                    setSelectedAmount(a)
-                    setCustomAmount("")
+                    setSelectedAmount(a);
+                    setCustomAmount("");
                   }}
                   className={`py-2.5 rounded-lg text-sm font-medium border transition-colors ${
                     selectedAmount === a
@@ -172,8 +175,8 @@ export function TipPageClient({
               placeholder="Or enter custom amount"
               value={customAmount}
               onChange={(e) => {
-                setCustomAmount(e.target.value)
-                setSelectedAmount(null)
+                setCustomAmount(e.target.value);
+                setSelectedAmount(null);
               }}
               className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
             />
@@ -202,7 +205,11 @@ export function TipPageClient({
             disabled={loading || amount < 100}
             className="w-full bg-black text-white rounded-xl px-4 py-3 text-base font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
-            {loading ? "Processing..." : amount >= 100 ? `Send ₦${amount.toLocaleString()}` : "Send Tip"}
+            {loading
+              ? "Redirecting to payment..."
+              : amount >= 100
+                ? `Send ₦${amount.toLocaleString()}`
+                : "Send Tip"}
           </button>
         </form>
 
@@ -233,5 +240,5 @@ export function TipPageClient({
         )}
       </div>
     </div>
-  )
+  );
 }

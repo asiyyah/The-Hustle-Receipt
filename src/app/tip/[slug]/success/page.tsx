@@ -17,12 +17,14 @@ export default function SuccessPage() {
   }>({ status: "verifying", errorMsg: "" })
 
   useEffect(() => {
-    const txRef = searchParams.get("tx_ref")
-    const transactionId = searchParams.get("transaction_id")
+    const chargeId =
+      searchParams.get("charge_id") ||
+      searchParams.get("id") ||
+      searchParams.get("transaction_id")
     const flwStatus = searchParams.get("status")
 
     async function checkPayment() {
-      if (!txRef && !transactionId) {
+      if (!chargeId) {
         setState({ status: "error", errorMsg: "No transaction reference found" })
         return
       }
@@ -36,10 +38,7 @@ export default function SuccessPage() {
         const res = await fetch("/api/payments/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            transactionId: transactionId || undefined,
-            txRef: txRef || undefined,
-          }),
+          body: JSON.stringify({ chargeId }),
         })
 
         const json = await res.json()
