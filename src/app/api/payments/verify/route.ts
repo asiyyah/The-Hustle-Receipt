@@ -1,23 +1,33 @@
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { verifyCharge } from "@/lib/server/flutterwave"
+import { verifyTransaction } from "@/lib/flutterwave"
 
 export async function POST(request: NextRequest) {
   try {
-    const { chargeId, transactionReference } = await request.json()
+    const { transactionId, transactionReference } = await request.json()
 
-    if (!chargeId && !transactionReference) {
+    if (!transactionId && !transactionReference) {
       return Response.json(
-        { error: "Charge ID or transaction reference is required" },
+        { error: "Transaction ID or reference is required" },
         { status: 400 }
       )
     }
 
-    const tip = await prisma.tip.findFirst({
-      where: transactionReference
-        ? { transactionReference }
-        : { flutterwaveTransactionId: chargeId },
-      orderBy: { createdAt: "desc" },
+    const verification = transactionId
+      ? await verifyTransaction(transactionId)
+      : null
+
+    if (!verification) {
+      return Response.json(
+        { error: "Transaction ID is required for verification" },
+        { status: 400 }
+      )
+    }
+
+    const ref = verification.reference || transactionReference
+
+    const tip = await prisma.tip.findUnique({
+      where: { transactionReference: ref },
     })
 
     if (!tip) {
@@ -31,11 +41,23 @@ export async function POST(request: NextRequest) {
       return Response.json({ message: "Already verified", tip })
     }
 
-    const result = await verifyCharge(chargeId, tip.amount, tip.currency)
-
-    if (!result.verified) {
+    if (verification.status !== "successful") {
       return Response.json(
-        { error: result.reason ?? "Verification failed" },
+        { error: `Payment status is "${verification.status}", expected "successful"` },
+        { status: 400 }
+      )
+    }
+
+    if (Math.floor(verification.amount) !== Math.floor(tip.amount)) {
+      return Response.json(
+        { error: `Amount mismatch: expected ${tip.amount}, got ${verification.amount}` },
+        { status: 400 }
+      )
+    }
+
+    if (verification.currency !== tip.currency) {
+      return Response.json(
+        { error: `Currency mismatch: expected ${tip.currency}, got ${verification.currency}` },
         { status: 400 }
       )
     }
@@ -44,7 +66,7 @@ export async function POST(request: NextRequest) {
       where: { id: tip.id },
       data: {
         paymentStatus: "verified",
-        flutterwaveTransactionId: chargeId,
+        flutterwaveTransactionId: transactionId,
       },
     })
 

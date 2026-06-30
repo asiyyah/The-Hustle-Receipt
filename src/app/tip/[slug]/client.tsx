@@ -51,8 +51,6 @@ export function TipPageClient({
       supporterEmail: form.get("supporterEmail") as string,
       amount,
       message: form.get("message") as string,
-      lastName: creator.fullName,
-      email: form.get("supporterEmail") as string,
     };
 
     try {

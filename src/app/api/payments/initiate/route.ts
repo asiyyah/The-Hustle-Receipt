@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { generateTxRef } from "@/lib/slug"
-import { createCheckoutSession } from "@/lib/server/flutterwave"
+import { initiatePayment } from "@/lib/flutterwave"
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,15 +25,18 @@ export async function POST(request: NextRequest) {
 
     const txRef = generateTxRef("TIP")
 
-    const session = await createCheckoutSession({
+    const session = await initiatePayment({
+      tx_ref: txRef,
       amount,
       currency: "NGN",
-      reference: txRef,
+      redirect_url: `${request.nextUrl.origin}/tip/${creatorSlug}/success`,
       customer: {
         email: supporterEmail,
-        name: supporterName || "Supporter",
+        name: supporterName || undefined,
       },
-      redirectUrl: `${request.nextUrl.origin}/tip/${creatorSlug}/success`,
+      customizations: {
+        title: `Tip for ${creator.fullName}`,
+      },
       meta: {
         creatorSlug,
         supporterName: supporterName || null,
@@ -55,10 +58,8 @@ export async function POST(request: NextRequest) {
     })
 
     return Response.json({
-      chargeId: session.chargeId,
-      reference: session.reference,
-      checkoutUrl: session.checkoutUrl,
-      status: session.status,
+      checkoutUrl: session.link,
+      reference: txRef,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
