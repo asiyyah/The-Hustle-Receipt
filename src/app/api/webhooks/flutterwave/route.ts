@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { verifyTransaction } from "@/lib/flutterwave"
+import { verifyCharge } from "@/lib/flutterwave"
 
 export async function POST(request: NextRequest) {
   const incomingHash = request.headers.get("verif-hash") ?? ""
@@ -11,7 +11,16 @@ export async function POST(request: NextRequest) {
     return new Response("Unauthorized", { status: 401 })
   }
 
-  let payload: { type: string; data: { id: string; tx_ref: string; status: string; amount: number; currency: string } }
+  let payload: {
+    type: string
+    data: {
+      id: string
+      tx_ref: string
+      status: string
+      amount: number
+      currency: string
+    }
+  }
   try {
     payload = (await request.json()) as typeof payload
   } catch {
@@ -32,47 +41,62 @@ async function handleChargeCompleted(payload: {
 }) {
   const { data } = payload
 
-  const verification = await verifyTransaction(data.id).catch(() => null)
-  if (!verification || verification.status !== "successful") {
-    console.error(`[Webhook] Verification failed for transaction ${data.id}`)
+  const chargeId = data.id
+
+  const verification = await verifyCharge(chargeId).catch(() => null)
+  if (!verification || verification.data.status !== "succeeded") {
+    console.error(`[Webhook] Verification failed for charge ${chargeId}`)
     return Response.json({ received: true }, { status: 200 })
   }
 
   const tip = await prisma.tip.findUnique({
-    where: { transactionReference: verification.reference },
+    where: { transactionReference: verification.data.reference },
   })
 
   if (!tip) {
-    console.warn(`[Webhook] No tip found for reference: ${verification.reference}`)
+    console.warn(
+      `[Webhook] No tip found for reference: ${verification.data.reference}`
+    )
     return Response.json({ received: true }, { status: 200 })
   }
 
   if (tip.paymentStatus === "verified") {
-    return Response.json({ received: true, message: "Already processed." }, { status: 200 })
+    return Response.json(
+      { received: true, message: "Already processed." },
+      { status: 200 }
+    )
   }
 
-  if (tip.amount !== Math.floor(verification.amount)) {
+  if (tip.amount !== Math.floor(verification.data.amount)) {
     console.error(
-      `[Webhook] Amount mismatch for ${verification.reference}: expected ${tip.amount}, got ${verification.amount}`
+      `[Webhook] Amount mismatch for ${verification.data.reference}: expected ${tip.amount}, got ${verification.data.amount}`
     )
-    return Response.json({ received: true, message: "Amount mismatch" }, { status: 200 })
+    return Response.json(
+      { received: true, message: "Amount mismatch" },
+      { status: 200 }
+    )
   }
 
-  if (tip.currency !== verification.currency) {
+  if (tip.currency !== verification.data.currency) {
     console.error(
-      `[Webhook] Currency mismatch for ${verification.reference}: expected ${tip.currency}, got ${verification.currency}`
+      `[Webhook] Currency mismatch for ${verification.data.reference}: expected ${tip.currency}, got ${verification.data.currency}`
     )
-    return Response.json({ received: true, message: "Currency mismatch" }, { status: 200 })
+    return Response.json(
+      { received: true, message: "Currency mismatch" },
+      { status: 200 }
+    )
   }
 
   await prisma.tip.update({
     where: { id: tip.id },
     data: {
       paymentStatus: "verified",
-      flutterwaveTransactionId: data.id,
+      flutterwaveTransactionId: chargeId,
     },
   })
 
-  console.log(`[Webhook] Tip ${tip.id} verified via webhook (transaction: ${data.id})`)
+  console.log(
+    `[Webhook] Tip ${tip.id} verified via webhook (charge: ${chargeId})`
+  )
   return Response.json({ received: true }, { status: 200 })
 }

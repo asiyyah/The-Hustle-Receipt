@@ -21,16 +21,24 @@ export default function SuccessPage() {
       searchParams.get("charge_id") ||
       searchParams.get("id") ||
       searchParams.get("transaction_id")
+    const txRef =
+      searchParams.get("tx_ref") || searchParams.get("reference")
     const flwStatus = searchParams.get("status")
 
     async function checkPayment() {
-      if (!chargeId) {
-        setState({ status: "error", errorMsg: "No transaction reference found" })
+      if (flwStatus === "cancelled" || flwStatus === "failed") {
+        setState({
+          status: "error",
+          errorMsg: "Payment was cancelled or failed",
+        })
         return
       }
 
-      if (flwStatus === "cancelled" || flwStatus === "failed") {
-        setState({ status: "error", errorMsg: "Payment was cancelled or failed" })
+      if (!chargeId && !txRef) {
+        setState({
+          status: "error",
+          errorMsg: "No transaction reference found",
+        })
         return
       }
 
@@ -38,7 +46,10 @@ export default function SuccessPage() {
         const res = await fetch("/api/payments/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chargeId }),
+          body: JSON.stringify({
+            chargeId: chargeId || undefined,
+            transactionReference: txRef || undefined,
+          }),
         })
 
         const json = await res.json()
@@ -46,10 +57,16 @@ export default function SuccessPage() {
         if (res.ok) {
           setState({ status: "success", errorMsg: "" })
         } else {
-          setState({ status: "error", errorMsg: json.error || "Verification failed" })
+          setState({
+            status: "error",
+            errorMsg: json.error || "Verification failed",
+          })
         }
       } catch {
-        setState({ status: "error", errorMsg: "Failed to verify payment" })
+        setState({
+          status: "error",
+          errorMsg: "Failed to verify payment",
+        })
       }
     }
 
@@ -94,7 +111,9 @@ export default function SuccessPage() {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
               <span className="text-2xl">❌</span>
             </div>
-            <h1 className="text-xl font-bold">Payment verification failed</h1>
+            <h1 className="text-xl font-bold">
+              Payment verification failed
+            </h1>
             <p className="text-sm text-gray-500">{state.errorMsg}</p>
             <Link
               href={`/tip/${slug}`}

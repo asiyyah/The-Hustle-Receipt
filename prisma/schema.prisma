@@ -23,16 +23,18 @@ model User {
 }
 
 model Tip {
-  id                     String   @id @default(cuid())
-  amount                 Int
-  currency               String   @default("NGN")
-  supporterName          String?
-  supporterEmail         String
-  message                String?
-  transactionReference   String   @unique
+  id                       String   @id @default(cuid())
+  amount                   Int
+  currency                 String   @default("NGN")
+  supporterName            String?
+  supporterEmail           String
+  message                  String?
+  transactionReference     String   @unique
+  paymentMethod            String
+  flwChargeId              String?
   flutterwaveTransactionId String?
-  paymentStatus          String   @default("pending")
-  creatorId              String
-  creator                User     @relation(fields: [creatorId], references: [id])
-  createdAt              DateTime @default(now())
+  paymentStatus            String   @default("pending")
+  creatorId                String
+  creator                  User     @relation(fields: [creatorId], references: [id])
+  createdAt                DateTime @default(now())
 }
