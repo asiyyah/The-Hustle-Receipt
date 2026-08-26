@@ -17,24 +17,11 @@ export default function SuccessPage() {
   }>({ status: "verifying", errorMsg: "" })
 
   useEffect(() => {
-    const chargeId =
-      searchParams.get("charge_id") ||
-      searchParams.get("id") ||
-      searchParams.get("transaction_id")
-    const txRef =
-      searchParams.get("tx_ref") || searchParams.get("reference")
-    const flwStatus = searchParams.get("status")
+    const reference = searchParams.get("reference")
+    const trxref = searchParams.get("trxref")
 
     async function checkPayment() {
-      if (flwStatus === "cancelled" || flwStatus === "failed") {
-        setState({
-          status: "error",
-          errorMsg: "Payment was cancelled or failed",
-        })
-        return
-      }
-
-      if (!chargeId && !txRef) {
+      if (!reference && !trxref) {
         setState({
           status: "error",
           errorMsg: "No transaction reference found",
@@ -47,8 +34,7 @@ export default function SuccessPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            chargeId: chargeId || undefined,
-            transactionReference: txRef || undefined,
+            reference: reference || trxref,
           }),
         })
 

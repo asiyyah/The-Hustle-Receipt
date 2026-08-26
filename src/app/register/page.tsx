@@ -27,26 +27,51 @@ function EyeOffIcon() {
 export default function RegisterPage() {
   const router = useRouter()
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<{ fullName?: string; email?: string; password?: string }>({})
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  function validateForm(fullName: string, email: string, password: string): boolean {
+    const errors: { fullName?: string; email?: string; password?: string } = {}
+
+    if (!fullName.trim()) {
+      errors.fullName = "Full name is required"
+    }
+
+    if (!email.trim()) {
+      errors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Please enter a valid email address"
+    }
+
+    if (!password) {
+      errors.password = "Password is required"
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters"
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError("")
-    setLoading(true)
 
     const form = new FormData(e.currentTarget)
-    const data = {
-      fullName: form.get("fullName") as string,
-      email: form.get("email") as string,
-      password: form.get("password") as string,
-    }
+    const fullName = form.get("fullName") as string
+    const email = form.get("email") as string
+    const password = form.get("password") as string
+
+    if (!validateForm(fullName, email, password)) return
+
+    setLoading(true)
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ fullName, email, password }),
       })
 
       if (res.ok) {
@@ -57,7 +82,7 @@ export default function RegisterPage() {
         setError(json.error || "Registration failed")
       }
     } catch {
-      setError("Something went wrong")
+      setError("Something went wrong. Please check your connection and try again.")
     } finally {
       setLoading(false)
     }
@@ -86,9 +111,13 @@ export default function RegisterPage() {
               name="fullName"
               type="text"
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${fieldErrors.fullName ? "border-red-300 focus:ring-red-100" : "focus:ring-black/10"}`}
               placeholder="Your full name"
+              onChange={() => setFieldErrors((prev) => ({ ...prev, fullName: undefined }))}
             />
+            {fieldErrors.fullName && (
+              <p className="text-xs text-red-500 mt-1">{fieldErrors.fullName}</p>
+            )}
           </div>
 
           <div>
@@ -100,9 +129,13 @@ export default function RegisterPage() {
               name="email"
               type="email"
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${fieldErrors.email ? "border-red-300 focus:ring-red-100" : "focus:ring-black/10"}`}
               placeholder="creator@example.com"
+              onChange={() => setFieldErrors((prev) => ({ ...prev, email: undefined }))}
             />
+            {fieldErrors.email && (
+              <p className="text-xs text-red-500 mt-1">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div>
@@ -119,8 +152,9 @@ export default function RegisterPage() {
                 type={showPassword ? "text" : "password"}
                 required
                 minLength={6}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 pr-10"
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 pr-10 ${fieldErrors.password ? "border-red-300 focus:ring-red-100" : "focus:ring-black/10"}`}
                 placeholder="At least 6 characters"
+                onChange={() => setFieldErrors((prev) => ({ ...prev, password: undefined }))}
               />
               <button
                 type="button"
@@ -135,9 +169,12 @@ export default function RegisterPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </p>
+            <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
+            </div>
           )}
 
           <button

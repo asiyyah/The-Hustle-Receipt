@@ -1,53 +1,31 @@
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { verifyCharge } from "@/lib/flutterwave"
+import { verifyTransaction } from "@/lib/paystack"
 
 export async function POST(request: NextRequest) {
   try {
-    const { chargeId, transactionReference } = await request.json()
+    const { reference } = await request.json()
 
-    if (!chargeId && !transactionReference) {
+    if (!reference) {
       return Response.json(
-        { error: "chargeId or transactionReference is required" },
+        { error: "reference is required" },
         { status: 400 }
       )
     }
 
-    let flwChargeId = chargeId
+    const verification = await verifyTransaction(reference)
 
-    if (!flwChargeId && transactionReference) {
-      const tip = await prisma.tip.findUnique({
-        where: { transactionReference },
-      })
-      if (!tip) {
-        return Response.json(
-          { error: "Transaction record not found" },
-          { status: 404 }
-        )
-      }
-      if (!tip.flwChargeId) {
-        return Response.json(
-          { error: "No charge ID found for this transaction" },
-          { status: 400 }
-        )
-      }
-      flwChargeId = tip.flwChargeId
-    }
-
-    const verification = await verifyCharge(flwChargeId)
-
-    if (verification.data.status !== "succeeded") {
+    if (verification.data.status !== "success") {
       return Response.json(
         {
-          error: `Payment status is "${verification.data.status}", expected "succeeded"`,
+          error: `Payment status is "${verification.data.status}", expected "success"`,
         },
         { status: 400 }
       )
     }
 
-    const ref = verification.data.reference || transactionReference
     const tip = await prisma.tip.findUnique({
-      where: { transactionReference: ref },
+      where: { transactionReference: reference },
     })
 
     if (!tip) {
@@ -61,10 +39,10 @@ export async function POST(request: NextRequest) {
       return Response.json({ message: "Already verified", tip })
     }
 
-    if (Math.floor(verification.data.amount) !== Math.floor(tip.amount)) {
+    if (Math.floor(verification.data.amount / 100) !== tip.amount) {
       return Response.json(
         {
-          error: `Amount mismatch: expected ${tip.amount}, got ${verification.data.amount}`,
+          error: `Amount mismatch: expected ${tip.amount}, got ${verification.data.amount / 100}`,
         },
         { status: 400 }
       )
@@ -83,7 +61,8 @@ export async function POST(request: NextRequest) {
       where: { id: tip.id },
       data: {
         paymentStatus: "verified",
-        flutterwaveTransactionId: verification.data.id,
+        paystackTransactionId: verification.data.id,
+        paystackReference: verification.data.reference,
       },
     })
 
