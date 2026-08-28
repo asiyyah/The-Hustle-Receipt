@@ -91,6 +91,14 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-black transition-colors"
+        >
+          <span aria-hidden="true">←</span>
+          Back to home
+        </Link>
+
         <div className="text-center">
           <h1 className="text-2xl font-bold">Create your account</h1>
           <p className="text-sm text-gray-500 mt-1">
