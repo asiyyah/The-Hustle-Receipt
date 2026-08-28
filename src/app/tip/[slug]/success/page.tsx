@@ -10,6 +10,8 @@ export default function SuccessPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const slug = params.slug as string
+  const reference =
+    searchParams.get("reference") || searchParams.get("trxref") || ""
 
   const [state, setState] = useState<{
     status: PageStatus
@@ -17,11 +19,8 @@ export default function SuccessPage() {
   }>({ status: "verifying", errorMsg: "" })
 
   useEffect(() => {
-    const reference = searchParams.get("reference")
-    const trxref = searchParams.get("trxref")
-
     async function checkPayment() {
-      if (!reference && !trxref) {
+      if (!reference) {
         setState({
           status: "error",
           errorMsg: "No transaction reference found",
@@ -34,7 +33,7 @@ export default function SuccessPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            reference: reference || trxref,
+            reference,
           }),
         })
 
@@ -57,7 +56,7 @@ export default function SuccessPage() {
     }
 
     checkPayment()
-  }, [searchParams, slug])
+  }, [reference])
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">

@@ -1,5 +1,8 @@
 # Flutterwave Integration Investigation Report
 
+> [!WARNING]
+> **Obsolete integration record.** The application no longer uses Flutterwave and now uses Paystack. This document is retained only as historical research and must not be used as current implementation guidance.
+
 ## Context
 
 Task 05 (The Hustle Receipt) requires integrating Flutterwave payment processing with the following user flow:

@@ -20,10 +20,8 @@ export async function GET(request: NextRequest) {
       select: {
         amount: true,
         supporterName: true,
-        supporterEmail: true,
         message: true,
         createdAt: true,
-        paymentStatus: true,
       },
     })
 

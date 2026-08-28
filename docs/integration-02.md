@@ -1,5 +1,8 @@
 # Flutterwave v4 Integration Journey
 
+> [!WARNING]
+> **Obsolete integration record.** The application no longer uses Flutterwave and now uses Paystack. This document is retained only as historical research and must not be used as current implementation guidance.
+
 ## 1. The Problem
 
 The Flutterwave developer dashboard for new accounts only provides **v4 OAuth 2.0 credentials** (Client ID, Client Secret, Encryption Key). Legacy v3 credentials (Public Key, Secret Key) are **not available** for newly created accounts — the v3→v4 migration is one-way with no documented reverse toggle.

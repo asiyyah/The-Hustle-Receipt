@@ -1,5 +1,8 @@
 # Flutterwave Credential Availability
 
+> [!WARNING]
+> **Obsolete integration record.** The application no longer uses Flutterwave and now uses Paystack. This document is retained only as historical research and must not be used as current implementation guidance.
+
 ## 1. Current Dashboard Credentials — ✅ Matches v4
 
 Your sandbox dashboard showing **Client ID**, **Client Secret**, **Encryption Key** is the standard v4 (OAuth 2.0) credential set. Confirmed by the v4 Environments documentation (screenshot shows these three fields) and the v4 SDK initialization parameters.

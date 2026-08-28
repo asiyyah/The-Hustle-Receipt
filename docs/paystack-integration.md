@@ -97,7 +97,7 @@ Verifies a completed payment using the transaction reference.
 
 Handles Paystack webhook events (secondary verification path).
 
-**Headers:** `x-paystack-signature` (currently not validated — add webhook secret to `.env` if needed)
+**Headers:** `x-paystack-signature` (validated with HMAC-SHA512 using the Paystack secret key)
 
 **Handles event:** `charge.success`
 
@@ -120,7 +120,7 @@ model Tip {
   transactionReference String   @unique  // Our unique ref, passed to Paystack
   paymentMethod        String            // "card", "bank_transfer", etc.
   paystackReference    String?           // Paystack's reference on verification
-  paystackTransactionId Int?             // Paystack's transaction ID
+  paystackTransactionId String?          // Paystack's ID stored as text to avoid integer overflow
   paymentStatus        String   @default("pending")  // "pending" → "verified"
   creatorId            String
   createdAt            DateTime @default(now())

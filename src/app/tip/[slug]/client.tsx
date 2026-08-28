@@ -142,23 +142,25 @@ export function TipPageClient({
           className="bg-white border rounded-2xl p-6 space-y-5"
         >
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="supporterName" className="block text-sm font-medium mb-2">
               Your name{" "}
               <span className="text-gray-400">(optional)</span>
             </label>
             <input
               name="supporterName"
+              id="supporterName"
               className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
               placeholder="Your name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="supporterEmail" className="block text-sm font-medium mb-2">
               Email address <span className="text-red-500">*</span>
             </label>
             <input
               name="supporterEmail"
+              id="supporterEmail"
               type="email"
               required
               className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
@@ -167,7 +169,7 @@ export function TipPageClient({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="customAmount" className="block text-sm font-medium mb-2">
               Amount (NGN) <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-4 gap-2 mb-3">
@@ -191,6 +193,7 @@ export function TipPageClient({
             </div>
             <input
               type="number"
+              id="customAmount"
               min={100}
               placeholder="Or enter custom amount"
               value={customAmount}
@@ -203,11 +206,12 @@ export function TipPageClient({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="message" className="block text-sm font-medium mb-2">
               Message <span className="text-gray-400">(optional)</span>
             </label>
             <textarea
               name="message"
+              id="message"
               rows={3}
               className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 resize-none"
               placeholder="Love your work. Keep creating."
@@ -215,7 +219,7 @@ export function TipPageClient({
           </div>
 
           {state.phase === "error" && (
-            <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <p role="alert" className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               {state.message}
             </p>
           )}

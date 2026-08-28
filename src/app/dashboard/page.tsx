@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 type DashboardData = {
   stats: {
     totalAmount: number
-    totalSupporters: number
+    totalTips: number
     averageTip: number
   }
   recentTips: Array<{
@@ -15,7 +15,6 @@ type DashboardData = {
     amount: number
     currency: string
     supporterName: string | null
-    supporterEmail: string
     message: string | null
     paymentStatus: string
     createdAt: string
@@ -84,10 +83,14 @@ export default function DashboardPage() {
     ? `${window.location.origin}/tip/${creatorSlug}`
     : ""
 
-  function copyLink() {
-    navigator.clipboard.writeText(tipUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(tipUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+    }
   }
 
   if (isLoading || userLoading) {
@@ -150,9 +153,9 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="bg-white border rounded-xl p-6 space-y-1">
-            <p className="text-sm text-gray-500 font-medium">Supporters</p>
+            <p className="text-sm text-gray-500 font-medium">Tips received</p>
             <p className="text-3xl font-bold">
-              {data?.stats?.totalSupporters || 0}
+              {data?.stats?.totalTips || 0}
             </p>
           </div>
           <div className="bg-white border rounded-xl p-6 space-y-1">

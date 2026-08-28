@@ -1,66 +1,44 @@
 import { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { verifyTransaction } from "@/lib/paystack"
+import { verifyWebhookSignature } from "@/lib/paystack"
+import { verifyAndRecordTip } from "@/lib/payment-verification"
+import { isRecord } from "@/lib/validation"
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get("x-paystack-signature") ?? ""
 
-  if (!signature) {
+  if (!verifyWebhookSignature(body, signature)) {
     console.warn("[Webhook] Rejected request — missing signature")
     return new Response("Unauthorized", { status: 401 })
   }
 
-  let event: { event: string; data: { reference: string } }
+  let event: unknown
   try {
     event = JSON.parse(body)
   } catch {
     return new Response("Bad Request — invalid JSON", { status: 400 })
   }
 
+  if (!isRecord(event) || typeof event.event !== "string") {
+    return new Response("Bad Request — invalid event", { status: 400 })
+  }
+
   if (event.event !== "charge.success") {
-    console.log(`[Webhook] Unhandled event type: ${event.event}`)
     return Response.json({ received: true }, { status: 200 })
   }
 
-  const { reference } = event.data
+  if (
+    !isRecord(event.data) ||
+    typeof event.data.reference !== "string" ||
+    !event.data.reference.trim()
+  ) {
+    return new Response("Bad Request — missing reference", { status: 400 })
+  }
+
+  const reference = event.data.reference.trim()
 
   try {
-    const verification = await verifyTransaction(reference)
-
-    if (verification.data.status !== "success") {
-      console.error(`[Webhook] Verification failed for ${reference}`)
-      return Response.json({ received: true }, { status: 200 })
-    }
-
-    const tip = await prisma.tip.findUnique({
-      where: { transactionReference: reference },
-    })
-
-    if (!tip) {
-      console.warn(`[Webhook] No tip found for reference: ${reference}`)
-      return Response.json({ received: true }, { status: 200 })
-    }
-
-    if (tip.paymentStatus === "verified") {
-      return Response.json(
-        { received: true, message: "Already processed." },
-        { status: 200 }
-      )
-    }
-
-    await prisma.tip.update({
-      where: { id: tip.id },
-      data: {
-        paymentStatus: "verified",
-        paystackTransactionId: verification.data.id,
-        paystackReference: verification.data.reference,
-      },
-    })
-
-    console.log(
-      `[Webhook] Tip ${tip.id} verified via webhook (ref: ${reference})`
-    )
+    await verifyAndRecordTip(reference)
     return Response.json({ received: true }, { status: 200 })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)

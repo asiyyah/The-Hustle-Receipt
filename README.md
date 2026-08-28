@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Hustle Receipt
 
-## Getting Started
+A Next.js creator tipping application using Paystack hosted checkout, PostgreSQL, and Prisma.
 
-First, run the development server:
+## Core flow
+
+1. A creator registers and receives a public `/tip/[slug]` page.
+2. A supporter submits a tip and is redirected to Paystack Checkout.
+3. Paystack redirects back to the application and also sends a signed webhook.
+4. The server verifies the reference, amount, and currency with Paystack before marking the tip as verified.
+5. Verified tips appear in the creator dashboard.
+
+Payments currently settle to the Paystack account configured by `PAYSTACK_SECRET_KEY`. Creator subaccounts, split payments, and payouts are intentionally out of scope because this is an individual test project rather than a marketplace onboarding real creator bank accounts.
+
+## Local setup
+
+Copy `.env.example` to `.env` and provide valid values. `NEXTAUTH_SECRET` must contain at least 32 characters; generate a cryptographically random secret for every environment.
 
 ```bash
+npm install
+npx prisma generate
+npx prisma migrate dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev       # development server
+npm run lint      # ESLint
+npx tsc --noEmit  # TypeScript validation
+npm run build     # production build
+```
 
-## Learn More
+## Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Pooled PostgreSQL application connection |
+| `DIRECT_URL` | Direct PostgreSQL migration connection |
+| `PAYSTACK_SECRET_KEY` | Paystack test or live secret key |
+| `APP_URL` | Public application origin used for payment callbacks |
+| `NEXTAUTH_SECRET` | At least 32 characters; signs session JWTs |
+| `RATE_LIMIT_SECRET` | Optional separate key for hashing rate-limit identities; falls back to the session or Paystack secret |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Configure the Paystack webhook URL as `https://your-domain.example/api/webhooks/paystack`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Documentation
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `docs/paystack-integration.md` describes the active payment integration.
+- `docs/audit.md` contains the initial codebase audit.
+- Flutterwave documents are obsolete historical research retained for reference only.
+- `docs/testing-and-rate-limits.md` documents automated coverage and abuse limits.

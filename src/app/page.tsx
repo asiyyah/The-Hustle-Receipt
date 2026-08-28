@@ -62,7 +62,7 @@ export default function HomePage() {
             <div className="text-3xl">💰</div>
             <h3 className="font-semibold">Get supported</h3>
             <p className="text-sm text-gray-500">
-              Receive tips directly via Flutterwave
+              Receive tips securely via Paystack
             </p>
           </div>
         </div>

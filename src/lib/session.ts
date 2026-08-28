@@ -1,8 +1,13 @@
 import "server-only"
 import { SignJWT, jwtVerify } from "jose"
 
-const secretKey = process.env.NEXTAUTH_SECRET || "fallback-secret-change-me"
-const encodedKey = new TextEncoder().encode(secretKey)
+function getEncodedKey() {
+  const secretKey = process.env.NEXTAUTH_SECRET
+  if (!secretKey || secretKey.length < 32) {
+    throw new Error("NEXTAUTH_SECRET must be set and contain at least 32 characters")
+  }
+  return new TextEncoder().encode(secretKey)
+}
 
 export type SessionPayload = {
   userId: string
@@ -14,10 +19,11 @@ export async function encrypt(payload: SessionPayload) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(encodedKey)
+    .sign(getEncodedKey())
 }
 
 export async function decrypt(session: string | undefined = "") {
+  const encodedKey = getEncodedKey()
   try {
     const { payload } = await jwtVerify(session, encodedKey, {
       algorithms: ["HS256"],

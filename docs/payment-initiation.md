@@ -1,5 +1,8 @@
 # Payment Initiation Failure — Investigation Report
 
+> [!WARNING]
+> **Obsolete Flutterwave integration record.** The application now uses Paystack. This document is retained only as historical research and must not be used as current implementation guidance.
+
 ## Symptom
 
 `POST /api/payments/initiate` returns HTTP 500 with the message "Payment initiation failed" when called from the tip form.

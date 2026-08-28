@@ -33,7 +33,7 @@ export interface InitializeTransactionData {
 }
 
 export interface VerifyTransactionData {
-  id: number
+  id: number | string
   domain: string
   status: string
   reference: string
@@ -71,6 +71,7 @@ export async function initializeTransaction(
       callback_url: params.callback_url,
       metadata: params.metadata,
     }),
+    signal: AbortSignal.timeout(15_000),
   })
 
   const json = (await res.json()) as PaystackResponse<InitializeTransactionData>
@@ -91,8 +92,9 @@ export async function verifyTransaction(
     throw new Error("PAYSTACK_SECRET_KEY must be set in .env")
   }
 
-  const res = await fetch(`${BASE_URL}/transaction/verify/${reference}`, {
+  const res = await fetch(`${BASE_URL}/transaction/verify/${encodeURIComponent(reference)}`, {
     headers: headers(),
+    signal: AbortSignal.timeout(15_000),
   })
 
   const json = (await res.json()) as PaystackResponse<VerifyTransactionData>
@@ -118,5 +120,12 @@ export function verifyWebhookSignature(
     .update(body)
     .digest("hex")
 
-  return hash === signature
+  if (!/^[a-f0-9]{128}$/i.test(signature)) return false
+
+  const expected = Buffer.from(hash, "hex")
+  const received = Buffer.from(signature, "hex")
+  return (
+    expected.length === received.length &&
+    crypto.timingSafeEqual(expected, received)
+  )
 }

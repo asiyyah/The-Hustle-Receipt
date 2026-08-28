@@ -1,5 +1,8 @@
 # Flutterwave API Compatibility Findings
 
+> [!WARNING]
+> **Obsolete integration record.** The application no longer uses Flutterwave and now uses Paystack. This document is retained only as historical research and must not be used as current implementation guidance.
+
 ## 1. OAuth 2.0 Authentication — ✅ Confirmed
 
 Flutterwave v4 uses OAuth 2.0 client credentials flow.

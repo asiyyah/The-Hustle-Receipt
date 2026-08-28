@@ -32,9 +32,18 @@ model Tip {
   transactionReference String   @unique
   paymentMethod        String
   paystackReference    String?
-  paystackTransactionId Int?
+  paystackTransactionId String?
   paymentStatus        String   @default("pending")
   creatorId            String
   creator              User     @relation(fields: [creatorId], references: [id])
   createdAt            DateTime @default(now())
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
 }

@@ -1,10 +1,22 @@
 import { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { verifyTransaction } from "@/lib/paystack"
+import {
+  PaymentVerificationError,
+  verifyAndRecordTip,
+} from "@/lib/payment-verification"
+import { readJsonObject } from "@/lib/validation"
+import {
+  consumeRateLimits,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
-    const { reference } = await request.json()
+    const body = await readJsonObject(request)
+    const reference =
+      body && typeof body.reference === "string"
+        ? body.reference.trim()
+        : ""
 
     if (!reference) {
       return Response.json(
@@ -13,68 +25,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const verification = await verifyTransaction(reference)
-
-    if (verification.data.status !== "success") {
-      return Response.json(
-        {
-          error: `Payment status is "${verification.data.status}", expected "success"`,
-        },
-        { status: 400 }
-      )
-    }
-
-    const tip = await prisma.tip.findUnique({
-      where: { transactionReference: reference },
-    })
-
-    if (!tip) {
-      return Response.json(
-        { error: "Transaction record not found" },
-        { status: 404 }
-      )
-    }
-
-    if (tip.paymentStatus === "verified") {
-      return Response.json({ message: "Already verified", tip })
-    }
-
-    if (Math.floor(verification.data.amount / 100) !== tip.amount) {
-      return Response.json(
-        {
-          error: `Amount mismatch: expected ${tip.amount}, got ${verification.data.amount / 100}`,
-        },
-        { status: 400 }
-      )
-    }
-
-    if (verification.data.currency !== tip.currency) {
-      return Response.json(
-        {
-          error: `Currency mismatch: expected ${tip.currency}, got ${verification.data.currency}`,
-        },
-        { status: 400 }
-      )
-    }
-
-    const updated = await prisma.tip.update({
-      where: { id: tip.id },
-      data: {
-        paymentStatus: "verified",
-        paystackTransactionId: verification.data.id,
-        paystackReference: verification.data.reference,
+    const rateLimit = await consumeRateLimits([
+      {
+        namespace: "payments:verify:ip",
+        identifier: getClientIp(request),
+        limit: 30,
+        windowMs: 10 * 60 * 1000,
       },
-    })
+      {
+        namespace: "payments:verify:reference",
+        identifier: reference,
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+      },
+    ])
+    if (!rateLimit.allowed) return rateLimitResponse(rateLimit)
 
+    const result = await verifyAndRecordTip(reference)
     return Response.json({
-      message: "Payment verified successfully",
-      tip: updated,
+      message:
+        result.status === "verified"
+          ? "Payment verified successfully"
+          : "Payment already verified",
+      status: result.status,
+      reference: result.reference,
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.error("Verify payment error:", message)
+    if (error instanceof PaymentVerificationError) {
+      return Response.json({ error: error.message }, { status: error.status })
+    }
+
+    console.error("Verify payment error:", error)
     return Response.json(
-      { error: "Verification failed", detail: message },
+      { error: "Verification failed" },
       { status: 500 }
     )
   }
