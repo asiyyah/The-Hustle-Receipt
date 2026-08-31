@@ -59,7 +59,7 @@ export default function SuccessPage() {
   }, [reference])
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-svh flex items-center justify-center px-4 py-8">
       <div className="max-w-sm w-full text-center space-y-6">
         {state.status === "verifying" && (
           <div className="space-y-4">
@@ -84,7 +84,7 @@ export default function SuccessPage() {
             </p>
             <Link
               href={`/tip/${slug}`}
-              className="inline-block bg-black text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap bg-black text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               Go back
             </Link>
@@ -102,7 +102,7 @@ export default function SuccessPage() {
             <p className="text-sm text-gray-500">{state.errorMsg}</p>
             <Link
               href={`/tip/${slug}`}
-              className="inline-block bg-black text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap bg-black text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               Try again
             </Link>

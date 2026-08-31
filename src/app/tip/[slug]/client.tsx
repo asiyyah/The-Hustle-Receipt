@@ -95,7 +95,7 @@ export function TipPageClient({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <div className="max-w-lg mx-auto px-4 py-12 space-y-8">
+      <div className="max-w-lg mx-auto px-3 sm:px-4 py-8 sm:py-12 space-y-6 sm:space-y-8">
         <div className="text-center space-y-4">
           {creator.avatar && (
             <img
@@ -105,12 +105,12 @@ export function TipPageClient({
             />
           )}
           <div>
-            <h1 className="text-2xl font-bold">{creator.fullName}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold break-words">{creator.fullName}</h1>
             {creator.bio && (
-              <p className="text-gray-500 mt-1">{creator.bio}</p>
+              <p className="text-gray-500 mt-1 break-words">{creator.bio}</p>
             )}
           </div>
-          <p className="text-lg text-gray-600">Support my creative work ☕</p>
+          <p className="text-base sm:text-lg text-gray-600">Support my creative work ☕</p>
           {(creator.twitter || creator.instagram) && (
             <div className="flex items-center justify-center gap-3 text-sm">
               {creator.twitter && (
@@ -139,7 +139,7 @@ export function TipPageClient({
 
         <form
           onSubmit={handleFormSubmit}
-          className="bg-white border rounded-2xl p-6 space-y-5"
+          className="bg-white border rounded-2xl p-4 sm:p-6 space-y-5"
         >
           <div>
             <label htmlFor="supporterName" className="block text-sm font-medium mb-2">
@@ -149,7 +149,7 @@ export function TipPageClient({
             <input
               name="supporterName"
               id="supporterName"
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+              className="w-full min-h-11 border rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
               placeholder="Your name"
             />
           </div>
@@ -163,7 +163,7 @@ export function TipPageClient({
               id="supporterEmail"
               type="email"
               required
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+              className="w-full min-h-11 border rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
               placeholder="supporter@email.com"
             />
           </div>
@@ -172,7 +172,7 @@ export function TipPageClient({
             <label htmlFor="customAmount" className="block text-sm font-medium mb-2">
               Amount (NGN) <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-4 gap-2 mb-3">
+            <div className="grid grid-cols-2 min-[400px]:grid-cols-4 gap-2 mb-3">
               {AMOUNTS.map((a) => (
                 <button
                   key={a}
@@ -181,7 +181,7 @@ export function TipPageClient({
                     setSelectedAmount(a)
                     setCustomAmount("")
                   }}
-                  className={`py-2.5 rounded-lg text-sm font-medium border transition-colors ${
+                  className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap px-2 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
                     selectedAmount === a
                       ? "bg-black text-white border-black"
                       : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
@@ -201,7 +201,7 @@ export function TipPageClient({
                 setCustomAmount(e.target.value)
                 setSelectedAmount(null)
               }}
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+              className="w-full min-h-11 border rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
             />
           </div>
 
@@ -213,7 +213,7 @@ export function TipPageClient({
               name="message"
               id="message"
               rows={3}
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 resize-none"
+              className="w-full border rounded-lg px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-black/10 resize-y"
               placeholder="Love your work. Keep creating."
             />
           </div>
@@ -227,7 +227,7 @@ export function TipPageClient({
           <button
             type="submit"
             disabled={amount < 100 || state.phase === "submitting"}
-            className="w-full bg-black text-white rounded-xl px-4 py-3 text-base font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+            className="inline-flex min-h-12 w-full items-center justify-center whitespace-nowrap bg-black text-white rounded-xl px-3 sm:px-4 py-3 text-sm sm:text-base font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             {state.phase === "submitting"
               ? "Redirecting to Paystack..."
@@ -246,15 +246,15 @@ export function TipPageClient({
               {tips.slice(0, 10).map((tip, i) => (
                 <div
                   key={i}
-                  className="bg-white border rounded-xl px-4 py-3 flex items-center justify-between"
+                  className="min-w-0 bg-white border rounded-xl px-3 sm:px-4 py-3 flex items-center justify-between gap-3"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">❤️</span>
-                    <p className="text-sm font-medium">
+                  <div className="min-w-0 flex items-center gap-2">
+                    <span className="shrink-0 text-lg">❤️</span>
+                    <p className="min-w-0 truncate text-sm font-medium">
                       {tip.supporterName || "Anonymous"}
                     </p>
                   </div>
-                  <p className="text-sm font-semibold">
+                  <p className="shrink-0 whitespace-nowrap text-sm font-semibold">
                     ₦{tip.amount.toLocaleString()}
                   </p>
                 </div>

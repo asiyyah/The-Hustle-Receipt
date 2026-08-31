@@ -104,15 +104,18 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-lg font-bold">The Hustle Receipt</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">
+        <div className="max-w-5xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <h1 className="shrink-0 text-base sm:text-lg font-bold">
+            <span className="sm:hidden">Hustle Receipt</span>
+            <span className="hidden sm:inline">The Hustle Receipt</span>
+          </h1>
+          <div className="min-w-0 flex items-center justify-end gap-2 sm:gap-4">
+            <span className="hidden min-w-0 truncate text-sm text-gray-500 min-[420px]:block">
               {userData?.user?.fullName}
             </span>
             <button
               onClick={() => logoutMutation.mutate()}
-              className="text-sm text-gray-500 hover:text-black transition-colors"
+              className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap text-sm text-gray-500 hover:text-black transition-colors"
             >
               Log out
             </button>
@@ -120,8 +123,8 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        <div className="bg-white border rounded-xl p-6 space-y-4">
+      <main className="max-w-5xl mx-auto px-3 sm:px-4 py-5 sm:py-8 space-y-5 sm:space-y-8">
+        <div className="bg-white border rounded-xl p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Your tipping page</h2>
@@ -130,44 +133,44 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-col sm:flex-row sm:items-center gap-2">
             <input
               readOnly
               value={tipUrl}
-              className="flex-1 border rounded-lg px-3 py-2 text-sm bg-gray-50"
+              className="min-h-11 min-w-0 w-full flex-1 border rounded-lg px-3 py-2 text-base sm:text-sm bg-gray-50"
             />
             <button
               onClick={copyLink}
-              className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+              className="inline-flex min-h-11 w-full sm:w-auto shrink-0 items-center justify-center whitespace-nowrap bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               {copied ? "Copied!" : "Copy link"}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white border rounded-xl p-6 space-y-1">
+        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="min-w-0 bg-white border rounded-xl p-4 sm:p-6 space-y-1">
             <p className="text-sm text-gray-500 font-medium">Total earned</p>
-            <p className="text-3xl font-bold">
+            <p className="truncate text-2xl sm:text-3xl font-bold">
               ₦{data?.stats?.totalAmount?.toLocaleString() || 0}
             </p>
           </div>
-          <div className="bg-white border rounded-xl p-6 space-y-1">
+          <div className="min-w-0 bg-white border rounded-xl p-4 sm:p-6 space-y-1">
             <p className="text-sm text-gray-500 font-medium">Tips received</p>
-            <p className="text-3xl font-bold">
+            <p className="truncate text-2xl sm:text-3xl font-bold">
               {data?.stats?.totalTips || 0}
             </p>
           </div>
-          <div className="bg-white border rounded-xl p-6 space-y-1">
+          <div className="min-w-0 bg-white border rounded-xl p-4 sm:p-6 space-y-1 min-[480px]:col-span-2 lg:col-span-1">
             <p className="text-sm text-gray-500 font-medium">Average tip</p>
-            <p className="text-3xl font-bold">
+            <p className="truncate text-2xl sm:text-3xl font-bold">
               ₦{data?.stats?.averageTip?.toLocaleString() || 0}
             </p>
           </div>
         </div>
 
         <div className="bg-white border rounded-xl">
-          <div className="px-6 py-4 border-b">
+          <div className="px-4 sm:px-6 py-4 border-b">
             <h3 className="font-semibold">Recent tips</h3>
           </div>
           {data?.recentTips && data.recentTips.length > 0 ? (
@@ -175,20 +178,20 @@ export default function DashboardPage() {
               {data.recentTips.map((tip) => (
                 <div
                   key={tip.id}
-                  className="px-6 py-4 flex items-center justify-between"
+                  className="min-w-0 px-4 sm:px-6 py-4 flex flex-col min-[420px]:flex-row min-[420px]:items-start justify-between gap-2 sm:gap-4"
                 >
-                  <div>
-                    <p className="font-medium">
+                  <div className="min-w-0">
+                    <p className="font-medium break-words">
                       {tip.supporterName || "Anonymous"}
                     </p>
                     {tip.message && (
-                      <p className="text-sm text-gray-500 mt-0.5">
+                      <p className="text-sm text-gray-500 mt-0.5 break-words">
                         &ldquo;{tip.message}&rdquo;
                       </p>
                     )}
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold">₦{tip.amount.toLocaleString()}</p>
+                  <div className="shrink-0 text-left min-[420px]:text-right">
+                    <p className="font-semibold whitespace-nowrap">₦{tip.amount.toLocaleString()}</p>
                     <p className="text-xs text-green-600 font-medium">
                       {tip.paymentStatus === "verified"
                         ? "Successful"
@@ -199,14 +202,14 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="px-6 py-12 text-center text-gray-400">
+            <div className="px-4 sm:px-6 py-10 sm:py-12 text-center text-gray-400">
               No tips yet. Share your tipping page to start receiving support.
             </div>
           )}
         </div>
 
         <div className="bg-white border rounded-xl">
-          <div className="px-6 py-4 border-b">
+          <div className="px-4 sm:px-6 py-4 border-b">
             <h3 className="font-semibold">Supporter messages</h3>
           </div>
           {data?.recentTips &&
@@ -215,8 +218,8 @@ export default function DashboardPage() {
               {data.recentTips
                 .filter((t) => t.message)
                 .map((tip) => (
-                  <div key={tip.id} className="px-6 py-4">
-                    <p className="text-gray-800 italic">
+                  <div key={tip.id} className="px-4 sm:px-6 py-4 min-w-0">
+                    <p className="text-gray-800 italic break-words">
                       &ldquo;{tip.message}&rdquo;
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
@@ -226,7 +229,7 @@ export default function DashboardPage() {
                 ))}
             </div>
           ) : (
-            <div className="px-6 py-12 text-center text-gray-400">
+            <div className="px-4 sm:px-6 py-10 sm:py-12 text-center text-gray-400">
               No messages from supporters yet.
             </div>
           )}
